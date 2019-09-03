@@ -10,32 +10,29 @@ from .head import ClsHead
 slim = tf.contrib.slim
 
 
-def load_net_cfg_from_file(cfgfile):
-  def load_from_options(section, cfg):
-    options = dict()
-    xdict = dict(cfg.items(section))
-    for key, value in xdict.items():
-      try:
-        value = ast.literal_eval(value)
-      except:
-        value = value
-      options[key] = value
-    return options
-
-  cfg = configparser.ConfigParser()
-  cfg.read(cfgfile)
-
-  sections = cfg.sections()
-  options = dict()
-  for _section in sections:
-    options[_section] = load_from_options(_section, cfg)
-
-  return options
+w32_config = {
+  'NET': {'num_stages': 3, 'num_channels': 32},
+  'FRONT': {'num_channels': 64, 'bottlenect_channels': 256,
+            'output_channels': 32, 'num_blocks': 4},
+  'S2': {'num_modules': 1, 'num_blocks': 4, 'num_branches': 2},
+  'S3': {'num_modules': 4, 'num_blocks': 4, 'num_branches': 3},
+  'S4': {'num_modules': 3, 'num_blocks': 4, 'num_branches': 4},
+  'HEAD': {'base_channel': 128, 'num_branches': 4, 'fc_channel': 2048}
+}
 
 
-def build_hrnet(input, config_file, is_training=True, num_classes=None):
-  cfg = load_net_cfg_from_file(config_file)
+w48_config = {
+  'NET': {'num_stages': 3, 'num_channels': 48},
+  'FRONT': {'num_channels': 64, 'bottlenect_channels': 256,
+            'output_channels': 48, 'num_blocks': 4},
+  'S2': {'num_modules': 1, 'num_blocks': 4, 'num_branches': 2},
+  'S3': {'num_modules': 4, 'num_blocks': 4, 'num_branches': 3},
+  'S4': {'num_modules': 3, 'num_blocks': 4, 'num_branches': 4},
+  'HEAD': {'base_channel': 128, 'num_branches': 4, 'fc_channel': 2048}
+}
 
+
+def hrnet(cfg):
   stages = []
   front = HRFront(num_channels=cfg['FRONT']['num_channels'],
                   bottlenect_channels=cfg['FRONT']['bottlenect_channels'],
@@ -59,6 +56,28 @@ def build_hrnet(input, config_file, is_training=True, num_classes=None):
                     cls_num=num_classes,
                     fc_channel=cfg['HEAD']['fc_channel'])
   stages.append(clshead)
+  return stages
+
+
+def build_hrnet_w32(input, is_training=True, num_classes=None):
+  cfg = w32_config
+  stages = hrnet(cfg)
+
+  with tf.variable_scope('HRNet') as sc:
+    end_points_collection = sc.original_name_scope + '_end_points'
+    with slim.arg_scope([slim.conv2d, slim.fully_connected],
+                        outputs_collections=end_points_collection):
+      with slim.arg_scope([slim.batch_norm], is_training=is_training):
+        out = input
+        for stage in stages:
+          out = stage.forward(out)
+        end_points = slim.utils.convert_collection_to_dict(end_points_collection)
+        return out, end_points
+
+
+def build_hrnet_w48(input, is_training=True, num_classes=None):
+  cfg = w48_config
+  stages = hrnet(cfg)
 
   with tf.variable_scope('HRNet') as sc:
     end_points_collection = sc.original_name_scope + '_end_points'

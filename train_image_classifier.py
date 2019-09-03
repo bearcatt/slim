@@ -40,10 +40,11 @@ tf.app.flags.DEFINE_integer('num_clones', 1,
                             'out and learning rate decay happen per clone '
                             'epochs')
 
-tf.app.flags.DEFINE_boolean('clone_on_cpu', False,
-                            'Use CPUs to deploy clones.')
+tf.app.flags.DEFINE_boolean(
+    'clone_on_cpu', False, 'Use CPUs to deploy clones.')
 
-tf.app.flags.DEFINE_integer('worker_replicas', 1, 'Number of worker replicas.')
+tf.app.flags.DEFINE_integer(
+    'worker_replicas', 1, 'Number of worker replicas.')
 
 tf.app.flags.DEFINE_integer(
     'num_ps_tasks', 0,
@@ -101,10 +102,11 @@ tf.app.flags.DEFINE_float(
     'adam_beta2', 0.999,
     'The exponential decay rate for the 2nd moment estimates.')
 
-tf.app.flags.DEFINE_float('opt_epsilon', 1.0, 'Epsilon term for the optimizer.')
+tf.app.flags.DEFINE_float(
+      'opt_epsilon', 1.0, 'Epsilon term for the optimizer.')
 
-tf.app.flags.DEFINE_float('ftrl_learning_rate_power', -0.5,
-                          'The learning rate power.')
+tf.app.flags.DEFINE_float(
+    'ftrl_learning_rate_power', -0.5, 'The learning rate power.')
 
 tf.app.flags.DEFINE_float(
     'ftrl_initial_accumulator_value', 0.1,
@@ -120,9 +122,11 @@ tf.app.flags.DEFINE_float(
     'momentum', 0.9,
     'The momentum for the MomentumOptimizer and RMSPropOptimizer.')
 
-tf.app.flags.DEFINE_float('rmsprop_momentum', 0.9, 'Momentum.')
+tf.app.flags.DEFINE_float(
+      'rmsprop_momentum', 0.9, 'Momentum.')
 
-tf.app.flags.DEFINE_float('rmsprop_decay', 0.9, 'Decay term for RMSProp.')
+tf.app.flags.DEFINE_float(
+      'rmsprop_decay', 0.9, 'Decay term for RMSProp.')
 
 tf.app.flags.DEFINE_integer(
     'quantize_delay', -1,
@@ -270,6 +274,18 @@ def _configure_learning_rate(num_samples_per_epoch, global_step):
                                      power=1.0,
                                      cycle=False,
                                      name='polynomial_decay_learning_rate')
+  elif FLAGS.learning_rate_decay_type == 'piecewise_constant':
+    boundaries = [int(0.3 * FLAGS.max_number_of_steps), 
+                  int(0.6 * FLAGS.max_number_of_steps), 
+                  int(0.9 * FLAGS.max_number_of_steps)]
+    values = [FLAGS.learning_rate * 1.0, 
+              FLAGS.learning_rate * 0.1, 
+              FLAGS.learning_rate * 0.01, 
+              FLAGS.learning_rate * 0.001]
+    return tf.train.piecewise_constant(global_step,
+                                       boundaries,
+                                       lr_values,
+                                       name='piecewise_constant_learning_rate')
   else:
     raise ValueError('learning_rate_decay_type [%s] was not recognized' %
                      FLAGS.learning_rate_decay_type)

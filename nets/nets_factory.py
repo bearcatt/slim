@@ -74,7 +74,8 @@ networks_map = {'alexnet_v2': alexnet.alexnet_v2,
                 'nasnet_large': nasnet.build_nasnet_large,
                 'pnasnet_large': pnasnet.build_pnasnet_large,
                 'pnasnet_mobile': pnasnet.build_pnasnet_mobile,
-                'hrnet': hrnet.build_hrnet,
+                'hrnet_w32': hrnet.build_hrnet_w32,
+                'hrnet_w48': hrnet.build_hrnet_w48,
                }
 
 arg_scopes_map = {'alexnet_v2': alexnet.alexnet_v2_arg_scope,
@@ -112,7 +113,8 @@ arg_scopes_map = {'alexnet_v2': alexnet.alexnet_v2_arg_scope,
                   'nasnet_large': nasnet.nasnet_large_arg_scope,
                   'pnasnet_large': pnasnet.pnasnet_large_arg_scope,
                   'pnasnet_mobile': pnasnet.pnasnet_mobile_arg_scope,
-                  'hrnet': hrnet.hrnet_arg_scope,
+                  'hrnet_w32': hrnet.hrnet_arg_scope,
+                  'hrnet_w48': hrnet.hrnet_arg_scope,
                  }
 
 
